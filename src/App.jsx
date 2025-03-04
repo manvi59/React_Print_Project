@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { jsPDF } from "jspdf";
 
 function App() {
   useEffect(() => {
@@ -21,7 +22,13 @@ function App() {
   }, []);
 
   const handlePrint = () => {
-    window.print();
+    const doc = new jsPDF();
+    doc.text("React Print App", 10, 10);
+    doc.text("This page is protected from being saved, but can be printed.", 10, 20);
+    
+    // Auto-download PDF
+    const pdfFileName = "document.pdf";
+    doc.save(pdfFileName);
   };
 
   return (
