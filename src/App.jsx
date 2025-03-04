@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { jsPDF } from "jspdf";
 
@@ -8,9 +9,8 @@ function App() {
 
     // Disable Ctrl + S / Cmd + S (Save As)
     const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+      if ((event.ctrlKey || event.metaKey) && (event.key === "s" || event.key === "p")) {
         event.preventDefault();
-        alert("Saving is disabled!");
       }
     };
 
@@ -22,13 +22,38 @@ function App() {
   }, []);
 
   const handlePrint = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     doc.text("React Print App", 10, 10);
     doc.text("This page is protected from being saved, but can be printed.", 10, 20);
     
-    // Auto-download PDF
-    const pdfFileName = "document.pdf";
-    doc.save(pdfFileName);
+    // Ensure full-page visibility
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Print</title>
+          <style>
+            body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+            iframe { width: 100%; height: 100%; border: none; }
+          </style>
+        </head>
+        <body>
+          <iframe id='pdf-frame'></iframe>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      const pdfFrame = printWindow.document.getElementById("pdf-frame");
+      pdfFrame.src = doc.output("datauristring");
+      printWindow.onload = () => {
+        pdfFrame.contentWindow.focus();
+        pdfFrame.contentWindow.print();
+        printWindow.close();
+      };
+    }
   };
 
   return (
